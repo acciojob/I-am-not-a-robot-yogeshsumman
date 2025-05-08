@@ -5,14 +5,195 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>I'm not a robot</title>
-    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .img1 {
+        content: url("https://picsum.photos/id/237/200/300");
+      }
+      .img2 {
+        content: url("https://picsum.photos/seed/picsum/200/300");
+      }
+      .img3 {
+        content: url("https://picsum.photos/200/300?grayscale");
+      }
+      .img4 {
+        content: url("https://picsum.photos/200/300/");
+      }
+      .img5 {
+        content: url("https://picsum.photos/200/300.jpg");
+      }
+      img {
+        margin: 10px;
+        border: 5px solid #555;
+        width: 10%;
+        cursor: pointer;
+      }
+      .flex {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .selected {
+        border: 5px solid rgb(0, 195, 255);
+      }
+      p {
+        text-align: center;
+      }
+      button {
+        margin: 20px;
+        padding: 8px 16px;
+        cursor: pointer;
+      }
+      .buttons {
+        text-align: center;
+      }
+      h3 {
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
     <main>
       <!-- solution start -->
+      <h3 id="h">Please click on the identical tiles to verify that you are not a robot.</h3>
       
+      <div class="flex" id="images-container">
+        <!-- Images will be inserted here dynamically by JavaScript -->
+      </div>
+      
+      <div class="buttons">
+        <button id="reset" style="display: none;">Reset</button>
+        <button id="verify" style="display: none;">Verify</button>
+      </div>
+      
+      <p id="para"></p>
       <!-- solution end -->
     </main>
-    <script src="./script.js"></script>
+    
+    <script>
+      // Get DOM elements
+      const imagesContainer = document.getElementById('images-container');
+      const resetButton = document.getElementById('reset');
+      const verifyButton = document.getElementById('verify');
+      const resultPara = document.getElementById('para');
+      const heading = document.getElementById('h');
+      
+      // Track selected images and their classes
+      let selectedImages = [];
+      let selectedClasses = [];
+      
+      // Function to initialize the verification system
+      function initializeSystem() {
+        // Clear any existing content
+        imagesContainer.innerHTML = '';
+        selectedImages = [];
+        selectedClasses = [];
+        resetButton.style.display = 'none';
+        verifyButton.style.display = 'none';
+        resultPara.textContent = '';
+        heading.textContent = 'Please click on the identical tiles to verify that you are not a robot.';
+        
+        // Available image classes
+        const imageClasses = ['img1', 'img2', 'img3', 'img4', 'img5'];
+        
+        // Randomly select one class to duplicate
+        const duplicateIndex = Math.floor(Math.random() * imageClasses.length);
+        const duplicateClass = imageClasses[duplicateIndex];
+        
+        // Create an array with all 6 images (5 unique + 1 duplicate)
+        let allImages = [...imageClasses, duplicateClass];
+        
+        // Shuffle the images randomly
+        for (let i = allImages.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [allImages[i], allImages[j]] = [allImages[j], allImages[i]];
+        }
+        
+        // Create and append image elements
+        allImages.forEach((imgClass, index) => {
+          const img = document.createElement('img');
+          img.className = imgClass;
+          img.dataset.index = index;
+          img.dataset.class = imgClass;
+          
+          // Add click event handler
+          img.addEventListener('click', handleImageClick);
+          
+          // Append to the container
+          imagesContainer.appendChild(img);
+        });
+      }
+      
+      // Handle image click events
+      function handleImageClick(event) {
+        const clickedImg = event.target;
+        const imgIndex = clickedImg.dataset.index;
+        const imgClass = clickedImg.dataset.class;
+        
+        // Check if this image is already selected
+        const alreadySelectedIndex = selectedImages.indexOf(imgIndex);
+        
+        if (alreadySelectedIndex !== -1) {
+          // Deselect the image
+          clickedImg.classList.remove('selected');
+          selectedImages.splice(alreadySelectedIndex, 1);
+          selectedClasses.splice(alreadySelectedIndex, 1);
+        } else {
+          // Select the image
+          clickedImg.classList.add('selected');
+          selectedImages.push(imgIndex);
+          selectedClasses.push(imgClass);
+        }
+        
+        // Show/hide buttons based on selection
+        updateButtons();
+      }
+      
+      // Update button visibility based on selection
+      function updateButtons() {
+        // Show reset button if at least one image is selected
+        resetButton.style.display = selectedImages.length > 0 ? 'inline-block' : 'none';
+        
+        // Show verify button only if exactly two images are selected
+        verifyButton.style.display = selectedImages.length === 2 ? 'inline-block' : 'none';
+      }
+      
+      // Handle verification process
+      function verifySelection() {
+        // Check if the two selected images are identical
+        const areIdentical = selectedClasses[0] === selectedClasses[1];
+        
+        // Display appropriate message
+        if (areIdentical) {
+          resultPara.textContent = 'You are a human. Congratulations!';
+        } else {
+          resultPara.textContent = 'We can\'t verify you as a human. You selected the non-identical tiles.';
+        }
+        
+        // Hide verify button after verification
+        verifyButton.style.display = 'none';
+      }
+      
+      // Reset the system
+      function resetSystem() {
+        // Deselect all images
+        document.querySelectorAll('img.selected').forEach(img => {
+          img.classList.remove('selected');
+        });
+        
+        // Reset state
+        selectedImages = [];
+        selectedClasses = [];
+        resetButton.style.display = 'none';
+        verifyButton.style.display = 'none';
+        resultPara.textContent = '';
+      }
+      
+      // Add event listeners for buttons
+      resetButton.addEventListener('click', resetSystem);
+      verifyButton.addEventListener('click', verifySelection);
+      
+      // Initialize the system when the page loads
+      window.addEventListener('load', initializeSystem);
+    </script>
   </body>
 </html>
